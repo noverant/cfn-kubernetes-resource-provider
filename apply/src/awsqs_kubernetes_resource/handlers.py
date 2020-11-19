@@ -47,14 +47,14 @@ def create_handler(
         status=OperationStatus.IN_PROGRESS, resourceModel=model,
     )
     LOG.debug(f"Create invoke \n\n{request.__dict__}\n\n{callback_context}")
-    physical_resource_id, manifest_file, manifest_dict = handler_init(
+    physical_resource_id, manifest_file, manifest_list = handler_init(
         model, session, request.logicalResourceIdentifier, request.clientRequestToken
     )
     model.CfnId = encode_id(
         request.clientRequestToken,
         model.ClusterName,
         model.Namespace,
-        manifest_dict["kind"],
+        manifest_list[0]["kind"],
     )
     if not callback_context:
         LOG.debug("1st invoke")
@@ -75,20 +75,25 @@ def create_handler(
             LOG.debug(f"stabilizing: {progress.__dict__}")
             return progress
     try:
+        cmd = f"kubectl create --save-config -o yaml -f {manifest_file}"
+        if model.Namespace:
+            cmd = f"{cmd} -n {model.Namespace}"
         outp = run_command(
-            "kubectl create --save-config -o json -f %s -n %s"
-            % (manifest_file, model.Namespace),
+            cmd,
             model.ClusterName,
             session,
         )
-        build_model(json.loads(outp), model)
+        build_model(list(yaml.safe_load_all(outp)), model)
     except Exception as e:
         if "Error from server (AlreadyExists)" not in str(e):
             raise
         LOG.debug("checking whether this is a duplicate request....")
         if not get_model(model, session):
             raise exceptions.AlreadyExists(TYPE_NAME, model.CfnId)
-    if model.SelfLink.startswith("/apis/batch") and "cronjobs" not in model.SelfLink:
+    if not model.SelfLink:
+        # this is a multi-part resource, still need to work out stabilization for this
+        pass
+    elif model.SelfLink.startswith("/apis/batch") and "cronjobs" not in model.SelfLink:
         callback_context["stabilizing"] = model.SelfLink
         callback_context["name"] = model.Name
         progress.callbackContext = callback_context
@@ -118,12 +123,15 @@ def update_handler(
     _p, manifest_file, _d = handler_init(
         model, session, request.logicalResourceIdentifier, token
     )
+    cmd = f"kubectl apply -o yaml -f {manifest_file}"
+    if model.Namespace:
+        cmd = f"{cmd} -n {model.Namespace}"
     outp = run_command(
-        "kubectl apply -o json -f %s -n %s" % (manifest_file, model.Namespace),
+        cmd,
         model.ClusterName,
         session,
     )
-    build_model(json.loads(outp), model)
+    build_model(list(yaml.safe_load_all(outp)), model)
     progress.status = OperationStatus.SUCCESS
     return progress
 
@@ -146,8 +154,11 @@ def delete_handler(
     if not get_model(model, session):
         raise exceptions.NotFound(TYPE_NAME, model.Uid)
     try:
+        cmd = f"kubectl delete -f {manifest_file}"
+        if model.Namespace:
+            cmd = f"{cmd} -n {model.Namespace}"
         run_command(
-            "kubectl delete -f %s -n %s" % (manifest_file, model.Namespace),
+            cmd,
             model.ClusterName,
             session,
         )
@@ -210,7 +221,7 @@ def run_command(command, cluster_name, session):
     if cluster_name and session:
         if proxy_needed(cluster_name, session):
             put_function(session, cluster_name)
-            with open("/tmp/manifest.json", "r") as fh:
+            with open("/tmp/manifest.yaml", "r") as fh:
                 resp = proxy_call(cluster_name, fh.read(), command, session)
             LOG.info(resp)
             return resp
@@ -256,16 +267,12 @@ def json_serial(o):
     raise TypeError("Object of type '%s' is not JSON serializable" % type(o))
 
 
-def write_manifest(manifest, path):
-    f = open(path, "w")
-    if isinstance(manifest, dict):
-        manifest = json.dumps(manifest, default=json_serial)
-    f.write(manifest)
-    f.close()
+def write_manifest(manifests, path):
+    with open(path, 'w') as f:
+        yaml.dump_all(manifests, f)
 
 
-def generate_name(model, physical_resource_id, stack_name):
-    manifest = yaml.safe_load(model.Manifest)
+def generate_name(manifest, physical_resource_id, stack_name):
     if "metadata" in manifest.keys():
         if (
             "name" not in manifest["metadata"].keys()
@@ -279,11 +286,12 @@ def generate_name(model, physical_resource_id, stack_name):
 
 
 def build_model(kube_response, model):
-    for key in ["uid", "selfLink", "resourceVersion", "namespace", "name"]:
-        if key in kube_response["metadata"].keys():
-            setattr(
-                model, key[0].capitalize() + key[1:], kube_response["metadata"][key]
-            )
+    if len(kube_response) == 1:
+        for key in ["uid", "selfLink", "resourceVersion", "namespace", "name"]:
+            if key in kube_response[0]["metadata"].keys():
+                setattr(
+                    model, key[0].capitalize() + key[1:], kube_response[0]["metadata"][key]
+                )
 
 
 def handler_init(model, session, stack_name, token):
@@ -292,25 +300,30 @@ def handler_init(model, session, stack_name, token):
     )
 
     physical_resource_id = None
-    manifest_file = "/tmp/manifest.json"
+    manifest_file = "/tmp/manifest.yaml"
     if not proxy_needed(model.ClusterName, session):
         create_kubeconfig(model.ClusterName)
     s3_client = session.client("s3")
     if (not model.Manifest and not model.Url) or (model.Manifest and model.Url):
         raise Exception("Either Manifest or Url must be specified.")
+    if model.SelfLink:
+        physical_resource_id = model.SelfLink
     if model.Manifest:
-        if model.SelfLink:
-            physical_resource_id = model.SelfLink
-        manifest = generate_name(model, physical_resource_id, stack_name)
+        manifest_str = model.Manifest
     else:
         if re.match(s3_scheme, model.Url):
-            response = s3_get(model.Url, s3_client)
+            manifest_str = s3_get(model.Url, s3_client)
         else:
-            response = http_get(model.Url)
-        manifest = yaml.safe_load(response)
-    add_idempotency_token(manifest, token)
-    write_manifest(manifest, manifest_file)
-    return physical_resource_id, manifest_file, manifest
+            manifest_str = http_get(model.Url)
+    manifests = []
+    input_yaml = list(yaml.safe_load_all(manifest_str))
+    for manifest in input_yaml:
+        if len(input_yaml) == 1:
+            generate_name(manifest, physical_resource_id, stack_name)
+        add_idempotency_token(manifest, token)
+        manifests.append(manifest)
+    write_manifest(manifests, manifest_file)
+    return physical_resource_id, manifest_file, manifests
 
 
 def add_idempotency_token(manifest, token):
@@ -322,26 +335,33 @@ def add_idempotency_token(manifest, token):
 
 
 def stabilize_job(namespace, name, cluster_name, session):
-    response = json.loads(
+    cmd = f"kubectl get job/{name} -o yaml"
+    if namespace:
+        cmd = f"{cmd} -n {namespace}"
+    response = yaml.safe_load_all(
         run_command(
-            f"kubectl get job/{name} -n {namespace} -o json", cluster_name, session
+            cmd, cluster_name, session
         )
     )
-    for condition in response.get("status", {}).get("conditions", []):
-        if condition.get("status") == "True":
-            if condition.get("type") == "Complete":
-                return True
-            if condition.get("type") == "Failed":
-                raise Exception(
-                    f"Job failed {condition.get('reason')} {condition.get('message')}"
-                )
-    return False
+    for resource in response:
+        for condition in resource.get("status", {}).get("conditions", []):
+            if condition.get("status") == "True":
+                if condition.get("type") == "Failed":
+                    raise Exception(
+                        f"Job failed {condition.get('reason')} {condition.get('message')}"
+                    )
+                if condition.get("type") != "Complete":
+                    return False
+    return True
 
 
 def proxy_wrap(event, _context):
     LOG.debug(json.dumps(event))
     if event.get("manifest"):
-        write_manifest(event["manifest"], "/tmp/manifest.json")
+        with open("/tmp/manifest.yaml", 'w') as f:
+            f.write(event["manifest"])
+    with open("/tmp/manifest.yaml", 'r') as f:
+        LOG.debug(f.read())
     create_kubeconfig(event["cluster_name"])
     return run_command(event["command"], event["cluster_name"], boto3.session.Session())
 
@@ -358,11 +378,14 @@ def decode_id(encoded_id):
 
 def get_model(model, session):
     token, cluster, namespace, kind = decode_id(model.CfnId)
-    outp = run_command(f"kubectl get {kind} -n {namespace} -o json", cluster, session)
-    for i in json.loads(outp)["items"]:
+    cmd = f"kubectl get {kind} -o yaml"
+    if namespace:
+        cmd = f"{cmd} -n {namespace}"
+    outp = run_command(cmd, cluster, session)
+    for i in yaml.safe_load(outp)["items"]:
         if token == i.get("metadata", {}).get("annotations", {}).get(
             "cfn-client-token"
         ):
-            build_model(i, model)
+            build_model([i], model)
             return model
     return None
