@@ -1,2 +1,2 @@
-cloudformation-cli-python-lib==2.1.4
+git+https://github.com/aws-cloudformation/cloudformation-cli-python-plugin.git#egg=cloudformation-cli-python-lib&subdirectory=src
 awscli
