@@ -117,12 +117,12 @@ def update_handler(
     )
     if not proxy_needed(model.ClusterName, session):
         create_kubeconfig(model.ClusterName)
-    if not get_model(model, session):
-        raise exceptions.NotFound(TYPE_NAME, model.Uid)
     token, cluster_name, namespace, kind = decode_id(model.CfnId)
     _p, manifest_file, _d = handler_init(
         model, session, request.logicalResourceIdentifier, token
-    )
+    )        
+    if not get_model(model, session):
+        raise exceptions.NotFound(TYPE_NAME, model.Uid)
     cmd = f"kubectl apply -o yaml -f {manifest_file}"
     if model.Namespace:
         cmd = f"{cmd} -n {model.Namespace}"
