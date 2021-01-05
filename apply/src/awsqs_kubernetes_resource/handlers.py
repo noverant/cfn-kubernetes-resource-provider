@@ -223,7 +223,7 @@ def run_command(command, cluster_name, session):
             put_function(session, cluster_name)
             with open("/tmp/manifest.yaml", "r") as fh:
                 resp = proxy_call(cluster_name, fh.read(), command, session)
-            LOG.info(resp)
+            log_output(resp)
             return resp
     retries = 0
     while True:
@@ -233,7 +233,7 @@ def run_command(command, cluster_name, session):
                 output = subprocess.check_output(
                     shlex.split(command), stderr=subprocess.STDOUT
                 ).decode("utf-8")
-                LOG.debug(output)
+                log_output(output)
             except subprocess.CalledProcessError as exc:
                 LOG.error(
                     "Command failed with exit code %s, stderr: %s"
@@ -389,3 +389,11 @@ def get_model(model, session):
             build_model([i], model)
             return model
     return None
+
+def log_output(output):
+    # CloudWatch PutEvents has a max length limit (256Kb)
+    # Use slightly smaller value to include supporting information (timestamp, log level, etc.)
+    limit = 260000 
+    output_string = f"{output}" # to support dictionaries as arguments
+    for m in [output_string[i:i+limit] for i in range(0, len(output_string), limit)]:
+        LOG.debug(m)
