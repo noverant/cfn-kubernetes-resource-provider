@@ -144,6 +144,8 @@ def put_function(sess, cluster_name):
                     e
                 ) and "The function could not be updated due to a concurrent update operation." not in str(
                     e
+                ) and "Conflict due to concurrent requests on this function." not in str(
+                    e
                 ):
                     raise
                 break
