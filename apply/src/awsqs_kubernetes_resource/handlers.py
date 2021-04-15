@@ -269,7 +269,7 @@ def json_serial(o):
 
 def write_manifest(manifests, path):
     with open(path, 'w') as f:
-        yaml.dump_all(manifests, f)
+        yaml.dump_all(manifests, f, default_style='"')
 
 
 def generate_name(manifest, physical_resource_id, stack_name):
