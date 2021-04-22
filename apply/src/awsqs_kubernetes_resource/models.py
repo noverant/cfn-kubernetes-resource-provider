@@ -35,6 +35,7 @@ class ResourceHandlerRequest(BaseResourceHandlerRequest):
     # pylint: disable=invalid-name
     desiredResourceState: Optional["ResourceModel"]
     previousResourceState: Optional["ResourceModel"]
+    typeConfiguration: Optional["TypeConfigurationModel"]
 
 
 @dataclass
@@ -73,5 +74,23 @@ class ResourceModel(BaseModel):
 
 # work around possible type aliasing issues when variable has same name as a model
 _ResourceModel = ResourceModel
+
+
+@dataclass
+class TypeConfigurationModel(BaseModel):
+
+    @classmethod
+    def _deserialize(
+        cls: Type["_TypeConfigurationModel"],
+        json_data: Optional[Mapping[str, Any]],
+    ) -> Optional["_TypeConfigurationModel"]:
+        if not json_data:
+            return None
+        return cls(
+        )
+
+
+# work around possible type aliasing issues when variable has same name as a model
+_TypeConfigurationModel = TypeConfigurationModel
 
 

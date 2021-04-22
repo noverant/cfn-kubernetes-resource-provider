@@ -89,7 +89,7 @@ Resources:
   Cluster:
     Type: "AWSQS::EKS::Cluster"
     Properties:
-      Name: helm-contrack-test
+      Name: k8s-contract-test
       RoleArn: !GetAtt ControlPlaneRole.Arn
       KubernetesNetworkConfig:
         ServiceIpv4Cidr: "192.168.0.0/16"

@@ -67,9 +67,7 @@
                 "ec2:Describe*",
                 "ec2:CreateNetworkInterface",
                 "ec2:DeleteNetworkInterface",
-                "iam:PassRole",
                 "sts:GetCallerIdentity",
-                "lambda:*",
                 "s3:GetObject"
             ]
         },
@@ -80,9 +78,7 @@
                 "ec2:Describe*",
                 "ec2:CreateNetworkInterface",
                 "ec2:DeleteNetworkInterface",
-                "iam:PassRole",
                 "sts:GetCallerIdentity",
-                "lambda:*",
                 "s3:GetObject"
             ]
         },
@@ -93,8 +89,6 @@
                 "ec2:Describe*",
                 "ec2:CreateNetworkInterface",
                 "ec2:DeleteNetworkInterface",
-                "iam:PassRole",
-                "lambda:*",
                 "s3:GetObject"
             ]
         },
@@ -105,22 +99,7 @@
                 "ec2:Describe*",
                 "ec2:CreateNetworkInterface",
                 "ec2:DeleteNetworkInterface",
-                "iam:PassRole",
                 "sts:GetCallerIdentity",
-                "lambda:*",
-                "s3:GetObject"
-            ]
-        },
-        "list": {
-            "permissions": [
-                "ssm:GetParameter",
-                "eks:DescribeCluster",
-                "ec2:Describe*",
-                "ec2:CreateNetworkInterface",
-                "ec2:DeleteNetworkInterface",
-                "iam:PassRole",
-                "sts:GetCallerIdentity",
-                "lambda:*",
                 "s3:GetObject"
             ]
         }

@@ -43,6 +43,8 @@ def create_handler(
     callback_context: MutableMapping[str, Any],
 ) -> ProgressEvent:
     model = request.desiredResourceState
+    if not model.Namespace:
+        raise exceptions.InvalidRequest("Namespace is required.")
     progress: ProgressEvent = ProgressEvent(
         status=OperationStatus.IN_PROGRESS, resourceModel=model,
     )
@@ -115,6 +117,8 @@ def update_handler(
     progress: ProgressEvent = ProgressEvent(
         status=OperationStatus.IN_PROGRESS, resourceModel=model,
     )
+    if not model.CfnId:
+        raise exceptions.NotFound(TYPE_NAME, model.Uid)
     if not proxy_needed(model.ClusterName, session):
         create_kubeconfig(model.ClusterName)
     token, cluster_name, namespace, kind = decode_id(model.CfnId)
@@ -144,8 +148,10 @@ def delete_handler(
 ) -> ProgressEvent:
     model = request.desiredResourceState
     progress: ProgressEvent = ProgressEvent(
-        status=OperationStatus.SUCCESS, resourceModel=model,
+        status=OperationStatus.SUCCESS, resourceModel=None,
     )
+    if not model.CfnId:
+        raise exceptions.InvalidRequest("CfnId is required.")
     if not proxy_needed(model.ClusterName, session):
         create_kubeconfig(model.ClusterName)
     _p, manifest_file, _d = handler_init(
@@ -175,6 +181,8 @@ def read_handler(
     _callback_context: MutableMapping[str, Any],
 ) -> ProgressEvent:
     model = request.desiredResourceState
+    if not model.CfnId:
+        raise exceptions.NotFound(TYPE_NAME, model.Uid)
     if not proxy_needed(model.ClusterName, session):
         create_kubeconfig(model.ClusterName)
     if not get_model(model, session):

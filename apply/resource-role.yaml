@@ -27,8 +27,6 @@ Resources:
                 - "ec2:DeleteNetworkInterface"
                 - "ec2:Describe*"
                 - "eks:DescribeCluster"
-                - "iam:PassRole"
-                - "lambda:*"
                 - "s3:GetObject"
                 - "ssm:GetParameter"
                 - "sts:GetCallerIdentity"
