@@ -26,7 +26,7 @@ RUN cd get/src && zip -r -q ../ResourceProvider.zip ./ && \
     cd ../ && \
     mv awsqs-kubernetes-get.json schema.json && \
     find . -exec touch -t 202007010000.00 {} + && \
-    zip -X -r -q ../awsqs_kubernetes_get.zip ./ResourceProvider.zip .rpdk-config schema.json
+    zip -X -r -q ../awsqs_kubernetes_get.zip ./ResourceProvider.zip .rpdk-config schema.json inputs/
 
 RUN pip3 install -t apply/src --upgrade -r apply/requirements.txt && \
     find . -name "*.dist-info"  -exec rm -rf {} \; | true && \
@@ -46,6 +46,6 @@ RUN cd apply/src && zip -r -q ../ResourceProvider.zip ./ && \
     cd ../ && \
     mv awsqs-kubernetes-resource.json schema.json && \
     find . -exec touch -t 202007010000.00 {} + && \
-    zip -r -q ../awsqs_kubernetes_apply.zip ./ResourceProvider.zip .rpdk-config schema.json
+    zip -r -q ../awsqs_kubernetes_apply.zip ./ResourceProvider.zip .rpdk-config schema.json inputs/
 
 CMD mkdir -p /output/ && mv /build/*.zip /output/
