@@ -24,53 +24,80 @@ Resources:
       ManagedPolicyArns:
         - !Sub 'arn:${AWS::Partition}:iam::aws:policy/AmazonEKSClusterPolicy'
         - !Sub 'arn:${AWS::Partition}:iam::aws:policy/AmazonEKSServicePolicy'
-  HelmRole:
-    Type: "AWS::IAM::Role"
+  ExecutionRole:
+    Type: AWS::IAM::Role
     Properties:
-      Policies:
-        - PolicyName: helm-policy
-          PolicyDocument:
-            Version: 2012-10-17
-            Statement:
-              - Effect: Allow
-                Action:
-                  - secretsmanager:GetSecretValue
-                  - kms:Decrypt
-                  - eks:DescribeCluster
-                  - s3:GetObject
-                  - sts:AssumeRole
-                  - iam:PassRole
-                  - iam:ListRolePolicies
-                  - iam:ListAttachedRolePolicies
-                  - iam:GetRole
-                  - iam:GetPolicy
-                  - iam:GetPolicyVersion
-                  - ec2:CreateNetworkInterface
-                  - ec2:DeleteNetworkInterface
-                  - ec2:Describe*
-                  - logs:CreateLogGroup
-                  - logs:CreateLogStream
-                  - logs:PutLogEvents
-                  - lambda:*
-                Resource: '*'
+      MaxSessionDuration: 8400
       AssumeRolePolicyDocument:
-        Version: 2012-10-17
+        Version: '2012-10-17'
         Statement:
           - Effect: Allow
             Principal:
               Service:
-                - lambda.amazonaws.com
-                - resources.cloudformation.amazonaws.com
-              AWS: !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:root'
+                - "lambda.amazonaws.com"
+                - "resources.cloudformation.amazonaws.com"
             Action: sts:AssumeRole
-      ManagedPolicyArns:
-        - !Sub 'arn:${AWS::Partition}:iam::aws:policy/AmazonS3ReadOnlyAccess'
+      Path: "/"
+      Policies:
+        - PolicyName: ResourceTypePolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                    - "secretsmanager:GetSecretValue"
+                    - "kms:Decrypt"
+                    - "eks:DescribeCluster"
+                    - "s3:GetObject"
+                    - "sts:AssumeRole"
+                    - "iam:PassRole"
+                    - "iam:ListRolePolicies"
+                    - "iam:ListAttachedRolePolicies"
+                    - "iam:GetRole"
+                    - "iam:GetPolicy"
+                    - "iam:GetPolicyVersion"
+                    - "ec2:CreateNetworkInterface"
+                    - "ec2:DeleteNetworkInterface"
+                    - "ec2:Describe*"
+                    - "logs:CreateLogGroup"
+                    - "logs:CreateLogStream"
+                    - "logs:PutLogEvents"
+                    - "lambda:*"
+                Resource: "*"
+  LogDeliveryRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - cloudformation.amazonaws.com
+                - resources.cloudformation.amazonaws.com
+            Action: sts:AssumeRole
+      Path: "/"
+      Policies:
+        - PolicyName: ResourceTypePolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "logs:CreateLogGroup"
+                  - "logs:CreateLogStream"
+                  - "logs:DescribeLogGroups"
+                  - "logs:DescribeLogStreams"
+                  - "logs:PutLogEvents"
+                  - "cloudwatch:ListMetrics"
+                  - "cloudwatch:PutMetricData"
+                Resource: "*"
   VPCStack:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: 'https://aws-quickstart.s3.us-east-1.amazonaws.com/quickstart-aws-vpc/templates/aws-vpc.template'
+      TemplateURL: 'https://aws-quickstart.s3.us-east-1.amazonaws.com/quickstart-aws-vpc/templates/aws-vpc.template.yaml'
       Parameters:
-        AvailabilityZones: "us-east-1a,us-east-1b"
+        AvailabilityZones: !Sub "${AWS::Region}a,${AWS::Region}b"
         NumberOfAZs: 2
         PrivateSubnet1ACIDR: '10.0.0.0/24'
         PrivateSubnet2ACIDR: '10.0.1.0/24'
@@ -104,7 +131,7 @@ Resources:
         EndpointPublicAccess: true
       KubernetesApiAccess:
         Roles:
-          - Arn: !GetAtt HelmRole.Arn
+          - Arn: !GetAtt ExecutionRole.Arn
             Username: "AdminRole"
             Groups: [ "system:masters" ]
   WorkerRole:
@@ -138,7 +165,8 @@ Outputs:
     Value: !Ref Cluster
     Export:
       Name: AwsqsEksClusterContractTestClusterName
-  HelmRoleArn:
-    Value: !GetAtt HelmRole.Arn
-    Export:
-      Name: AwsqsEksClusterContractTestHelmRoleArn
+  ExecutionRoleArn:
+    Value: !GetAtt ExecutionRole.Arn
+  LogRoleArn:
+    Value: !GetAtt LogDeliveryRole.Arn
+
