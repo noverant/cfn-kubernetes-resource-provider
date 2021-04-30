@@ -25,7 +25,7 @@ Resources:
                 Action:
                 - "ec2:CreateNetworkInterface"
                 - "ec2:DeleteNetworkInterface"
-                - "ec2:Describe*"
+                - "ec2:DescribeSubnets"
                 - "eks:DescribeCluster"
                 - "s3:GetObject"
                 - "ssm:GetParameter"
@@ -33,5 +33,4 @@ Resources:
                 Resource: "*"
 Outputs:
   ExecutionRoleArn:
-    Value:
-      Fn::GetAtt: ExecutionRole.Arn
+    Value: !GetAtt ExecutionRole.Arn

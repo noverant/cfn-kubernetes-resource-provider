@@ -64,7 +64,7 @@
             "permissions": [
                 "ssm:GetParameter",
                 "eks:DescribeCluster",
-                "ec2:Describe*",
+                "ec2:DescribeSubnets",
                 "ec2:CreateNetworkInterface",
                 "ec2:DeleteNetworkInterface",
                 "sts:GetCallerIdentity",
@@ -75,7 +75,7 @@
             "permissions": [
                 "ssm:GetParameter",
                 "eks:DescribeCluster",
-                "ec2:Describe*",
+                "ec2:DescribeSubnets",
                 "ec2:CreateNetworkInterface",
                 "ec2:DeleteNetworkInterface",
                 "sts:GetCallerIdentity",
@@ -86,7 +86,7 @@
             "permissions": [
                 "ssm:GetParameter",
                 "eks:DescribeCluster",
-                "ec2:Describe*",
+                "ec2:DescribeSubnets",
                 "ec2:CreateNetworkInterface",
                 "ec2:DeleteNetworkInterface",
                 "s3:GetObject"
@@ -96,7 +96,7 @@
             "permissions": [
                 "ssm:GetParameter",
                 "eks:DescribeCluster",
-                "ec2:Describe*",
+                "ec2:DescribeSubnets",
                 "ec2:CreateNetworkInterface",
                 "ec2:DeleteNetworkInterface",
                 "sts:GetCallerIdentity",
