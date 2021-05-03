@@ -63,6 +63,7 @@ Resources:
                     - "logs:CreateLogStream"
                     - "logs:PutLogEvents"
                     - "lambda:*"
+                    - "cloudformation:ListExports"
                 Resource: "*"
   LogDeliveryRole:
     Type: AWS::IAM::Role
