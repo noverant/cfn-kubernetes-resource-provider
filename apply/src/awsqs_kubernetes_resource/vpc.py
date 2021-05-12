@@ -8,7 +8,7 @@ import logging
 import time
 from typing import Optional, Union
 from pathlib import Path
-from cloudformation_cli_python_lib import SessionProxy
+from cloudformation_cli_python_lib import SessionProxy, exceptions
 
 
 LOG = logging.getLogger(__name__)
@@ -21,9 +21,12 @@ def proxy_needed(
     if not Path("./awsqs_kubernetes_resource/vpc.zip").resolve().exists():
         return False
     eks = boto3_session.client("eks")
-    eks_vpc_config = eks.describe_cluster(name=cluster_name)["cluster"][
-        "resourcesVpcConfig"
-    ]
+    try:
+        eks_vpc_config = eks.describe_cluster(name=cluster_name)["cluster"][
+            "resourcesVpcConfig"
+        ]
+    except eks.exceptions.ResourceNotFoundException:
+        raise exceptions.InvalidRequest(f"cluster with name {cluster_name} not found")
     # for now we will always use vpc proxy, until we can work out how to wrap boto3 session in CFN registry when authing
     # if eks_vpc_config['endpointPublicAccess'] and '0.0.0.0/0' in eks_vpc_config['publicAccessCidrs']:
     #    return False
@@ -71,9 +74,12 @@ def random_string(length=8):
 
 def put_function(sess, cluster_name):
     eks = sess.client("eks")
-    eks_vpc_config = eks.describe_cluster(name=cluster_name)["cluster"][
-        "resourcesVpcConfig"
-    ]
+    try:
+        eks_vpc_config = eks.describe_cluster(name=cluster_name)["cluster"][
+            "resourcesVpcConfig"
+        ]
+    except eks.exceptions.ResourceNotFoundException:
+        raise exceptions.InvalidRequest(f"cluster with name {cluster_name} not found")
     ec2 = sess.client("ec2")
     internal_subnets = [
         s["SubnetId"]
