@@ -23,7 +23,7 @@ from cloudformation_cli_python_lib import (
 )
 
 from .models import ResourceHandlerRequest, ResourceModel
-from .vpc import proxy_needed, proxy_call, put_function
+from .vpc import proxy_needed, proxy_call, put_function, delete_function
 
 # Use this logger to forward log messages to CloudWatch Logs.
 LOG = logging.getLogger(__name__)
@@ -171,6 +171,7 @@ def delete_handler(
     except Exception as e:
         if "Error from server (NotFound)" not in str(e):
             raise
+    delete_function(session, model.ClusterName)
     return progress
 
 
@@ -397,6 +398,7 @@ def get_model(model, session):
             build_model([i], model)
             return model
     return None
+
 
 def log_output(output):
     # CloudWatch PutEvents has a max length limit (256Kb)

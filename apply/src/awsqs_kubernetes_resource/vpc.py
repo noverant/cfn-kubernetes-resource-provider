@@ -157,6 +157,14 @@ def put_function(sess, cluster_name):
                 break
 
 
+def delete_function(sess, cluster_name):
+    lmbd = sess.client("lambda")
+    try:
+        lmbd.delete_function(FunctionName=f"awsqs-kubernetes-resource-apply-proxy-{cluster_name}")
+    except lmbd.exceptions.ResourceNotFoundException:
+        LOG.warning("No cleanup performed, VPC lambda function does not exist")
+
+
 def invoke_function(func_arn, event, sess):
     lmbd = sess.client("lambda")
     while True:
