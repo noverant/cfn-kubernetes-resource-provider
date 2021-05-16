@@ -128,6 +128,7 @@
                 "lambda:UpdateFunctionConfiguration",
                 "lambda:UpdateFunctionCode",
                 "lambda:InvokeFunction",
+                "lambda:DeleteFunction",
                 "iam:PassRole"
             ]
         }
