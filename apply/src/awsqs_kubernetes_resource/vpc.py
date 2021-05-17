@@ -28,8 +28,9 @@ def proxy_needed(
     except eks.exceptions.ResourceNotFoundException:
         raise exceptions.InvalidRequest(f"cluster with name {cluster_name} not found")
     # for now we will always use vpc proxy, until we can work out how to wrap boto3 session in CFN registry when authing
-    # if eks_vpc_config['endpointPublicAccess'] and '0.0.0.0/0' in eks_vpc_config['publicAccessCidrs']:
-    #    return False
+    if eks_vpc_config['endpointPublicAccess'] and '0.0.0.0/0' in eks_vpc_config['publicAccessCidrs']:
+        LOG.warning("cluster is public")
+        return False
     if this_invoke_is_inside_vpc(
         set(eks_vpc_config["subnetIds"]), set(eks_vpc_config["securityGroupIds"])
     ):

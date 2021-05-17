@@ -120,7 +120,7 @@ def update_handler(
     if not model.CfnId:
         raise exceptions.NotFound(TYPE_NAME, model.Uid)
     if not proxy_needed(model.ClusterName, session):
-        create_kubeconfig(model.ClusterName)
+        create_kubeconfig(model.ClusterName, session)
     token, cluster_name, namespace, kind = decode_id(model.CfnId)
     _p, manifest_file, _d = handler_init(
         model, session, request.logicalResourceIdentifier, token
@@ -153,7 +153,7 @@ def delete_handler(
     if not model.CfnId:
         raise exceptions.InvalidRequest("CfnId is required.")
     if not proxy_needed(model.ClusterName, session):
-        create_kubeconfig(model.ClusterName)
+        create_kubeconfig(model.ClusterName, session)
     _p, manifest_file, _d = handler_init(
         model, session, request.logicalResourceIdentifier, request.clientRequestToken
     )
@@ -185,7 +185,7 @@ def read_handler(
     if not model.CfnId:
         raise exceptions.NotFound(TYPE_NAME, model.Uid)
     if not proxy_needed(model.ClusterName, session):
-        create_kubeconfig(model.ClusterName)
+        create_kubeconfig(model.ClusterName, session)
     if not get_model(model, session):
         raise exceptions.NotFound(TYPE_NAME, model.Uid)
     return ProgressEvent(status=OperationStatus.SUCCESS, resourceModel=model,)
@@ -258,10 +258,15 @@ def run_command(command, cluster_name, session):
             retries += 1
 
 
-def create_kubeconfig(cluster_name):
+def create_kubeconfig(cluster_name, session=None):
     os.environ["PATH"] = f"/var/task/bin:{os.environ['PATH']}"
     os.environ["PYTHONPATH"] = f"/var/task:{os.environ.get('PYTHONPATH', '')}"
     os.environ["KUBECONFIG"] = "/tmp/kube.config"
+    if session:
+        creds = session.client.__self__.get_credentials()
+        os.environ["AWS_ACCESS_KEY_ID"] = creds.access_key
+        os.environ["AWS_SECRET_ACCESS_KEY"] = creds.secret_key
+        os.environ["AWS_SESSION_TOKEN"] = creds.token
     run_command(
         f"aws eks update-kubeconfig --name {cluster_name} --alias {cluster_name} --kubeconfig /tmp/kube.config",
         None,
@@ -311,7 +316,7 @@ def handler_init(model, session, stack_name, token):
     physical_resource_id = None
     manifest_file = "/tmp/manifest.yaml"
     if not proxy_needed(model.ClusterName, session):
-        create_kubeconfig(model.ClusterName)
+        create_kubeconfig(model.ClusterName, session)
     s3_client = session.client("s3")
     if (not model.Manifest and not model.Url) or (model.Manifest and model.Url):
         raise Exception("Either Manifest or Url must be specified.")
