@@ -18,9 +18,6 @@ LOG.setLevel(logging.DEBUG)
 def proxy_needed(
     cluster_name: str, boto3_session: Optional[Union[boto3.Session, SessionProxy]]
 ) -> (boto3.client, str):
-    # If there's no vpc zip then we're already in the inner lambda.
-    if not Path("./awsqs_kubernetes_resource/vpc.zip").resolve().exists():
-        return False
     eks = boto3_session.client("eks")
     try:
         eks_vpc_config = eks.describe_cluster(name=cluster_name)["cluster"][
@@ -28,6 +25,9 @@ def proxy_needed(
         ]
     except eks.exceptions.ResourceNotFoundException:
         raise exceptions.InvalidRequest(f"cluster with name {cluster_name} not found")
+    # If there's no vpc zip then we're already in the inner lambda.
+    if not Path("./awsqs_kubernetes_resource/vpc.zip").resolve().exists():
+        return False
     # for now we will always use vpc proxy, until we can work out how to wrap boto3 session in CFN registry when authing
     if eks_vpc_config['endpointPublicAccess'] and '0.0.0.0/0' in eks_vpc_config['publicAccessCidrs']:
         LOG.warning("cluster is public")
