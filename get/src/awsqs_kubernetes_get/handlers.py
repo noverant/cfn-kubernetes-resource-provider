@@ -34,7 +34,7 @@ test_entrypoint = resource.test_entrypoint
 def kubectl_get(model: ResourceModel, sess) -> ProgressEvent    :
     LOG.info('Received model: %s' % json.dumps(model._serialize()))
     if not proxy_needed(model.ClusterName, sess):
-        create_kubeconfig(model.ClusterName)
+        create_kubeconfig(model.ClusterName, sess)
     model.Response = run_command(
         'kubectl get %s -o jsonpath="%s" --namespace %s' % (model.Name, model.JsonPath, model.Namespace),
         model.ClusterName,
@@ -116,7 +116,7 @@ def read_handler(
     LOG.error("read handler invoked")
     model = request.desiredResourceState
     try:
-        decode_id(model.Id)
+        decode_id(model.Id + '===')
     except TypeError:
         raise exceptions.NotFound(TYPE_NAME, model.Id)
     ssm = session.client('ssm')

@@ -1,6 +1,6 @@
 {
-  "ClusterName": "{{AwsqsEksClusterContractTestClusterName}}",
+  "ClusterName": "invalid",
   "Namespace": "default",
-  "Name": "ns/nonexistant",
+  "Name": "ns/kube-system",
   "JsonPath": "{.metadata}"
 }
