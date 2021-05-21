@@ -12,6 +12,7 @@ from cloudformation_cli_python_lib import SessionProxy, exceptions
 
 
 LOG = logging.getLogger(__name__)
+LOG.setLevel(logging.DEBUG)
 
 
 def proxy_needed(
@@ -99,63 +100,47 @@ def put_function(sess, cluster_name):
         .split("/")[:-1]
     )
     lmbd = sess.client("lambda")
+    function_config = {
+        "FunctionName": f"awsqs-kubernetes-resource-apply-proxy-{cluster_name}",
+        "Runtime": "python3.7",
+        "Role": role_arn,
+        "Handler": "awsqs_kubernetes_resource.handlers.proxy_wrap",
+        "Timeout": 900,
+        "MemorySize": 512,
+        "VpcConfig": {
+            "SubnetIds": internal_subnets,
+            "SecurityGroupIds": eks_vpc_config["securityGroupIds"],
+        }
+    }
     try:
+        no_update = update_function_config(lmbd, function_config)
+    except lmbd.exceptions.ResourceNotFoundException:
+        no_update = False
         with open("./awsqs_kubernetes_resource/vpc.zip", "rb") as zip_file:
-            lmbd.create_function(
-                FunctionName=f"awsqs-kubernetes-resource-apply-proxy-{cluster_name}",
-                Runtime="python3.7",
-                Role=role_arn,
-                Handler="awsqs_kubernetes_resource.handlers.proxy_wrap",
-                Code={"ZipFile": zip_file.read()},
-                Timeout=900,
-                MemorySize=512,
-                VpcConfig={
-                    "SubnetIds": internal_subnets,
-                    "SecurityGroupIds": eks_vpc_config["securityGroupIds"],
-                },
-            )
+            LOG.debug("Putting lambda function...")
+            lmbd.create_function(Code={"ZipFile": zip_file.read()}, **function_config)
+            LOG.debug("Done putting lambda function.")
+    if not no_update:
+        while not update_function_config(lmbd, function_config):
+            time.sleep(5)
+
+
+def update_function_config(lmbd, function_config):
+    try:
+        LOG.debug("Updating lambda function...")
+        lmbd.update_function_configuration(**function_config)
+        LOG.debug("Done updating lambda function...")
+        return True
     except lmbd.exceptions.ResourceConflictException as e:
-        if "Function already exist" not in str(e):
+        if "The operation cannot be performed at this time." not in str(
+                e
+        ) and "The function could not be updated due to a concurrent update operation." not in str(
+            e
+        ) and "Conflict due to concurrent requests on this function." not in str(
+            e
+        ):
             raise
-        LOG.warning("function already exists...")
-        while True:
-            try:
-                with open("./awsqs_kubernetes_resource/vpc.zip", "rb") as zip_file:
-                    lmbd.update_function_code(
-                        FunctionName=f"awsqs-kubernetes-resource-apply-proxy-{cluster_name}",
-                        ZipFile=zip_file.read(),
-                    )
-                break
-            except lmbd.exceptions.ResourceConflictException as e:
-                if "The operation cannot be performed at this time." not in str(e):
-                    raise
-                LOG.error(str(e))
-                time.sleep(10)
-        while True:
-            try:
-                lmbd.update_function_configuration(
-                    FunctionName=f"awsqs-kubernetes-resource-apply-proxy-{cluster_name}",
-                    Runtime="python3.7",
-                    Role=role_arn,
-                    Handler="awsqs_kubernetes_resource.handlers.proxy_wrap",
-                    Timeout=900,
-                    MemorySize=512,
-                    VpcConfig={
-                        "SubnetIds": internal_subnets,
-                        "SecurityGroupIds": eks_vpc_config["securityGroupIds"],
-                    },
-                )
-                break
-            except lmbd.exceptions.ResourceConflictException as e:
-                if "The operation cannot be performed at this time." not in str(
-                    e
-                ) and "The function could not be updated due to a concurrent update operation." not in str(
-                    e
-                ) and "Conflict due to concurrent requests on this function." not in str(
-                    e
-                ):
-                    raise
-                break
+        return False
 
 
 def delete_function(sess, cluster_name):

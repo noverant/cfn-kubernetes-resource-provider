@@ -46,69 +46,63 @@
         "/properties/JsonPath"
     ],
     "primaryIdentifier": [
-        "/properties/ClusterName",
-        "/properties/Namespace",
-        "/properties/Name",
-        "/properties/JsonPath"
+        "/properties/Id"
     ],
     "handlers": {
         "create": {
             "permissions": [
                 "ssm:GetParameter",
                 "eks:DescribeCluster",
-                "ec2:Describe*",
+                "ec2:DescribeSubnets",
+                "ec2:DescribeSecurityGroups",
+                "ec2:DescribeVpcs",
                 "ec2:CreateNetworkInterface",
                 "ec2:DeleteNetworkInterface",
-                "iam:PassRole",
                 "sts:GetCallerIdentity",
-                "lambda:*"
+                "s3:GetObject",
+                "lambda:CreateFunction",
+                "lambda:UpdateFunctionConfiguration",
+                "lambda:UpdateFunctionCode",
+                "lambda:InvokeFunction",
+                "iam:PassRole"
             ]
         },
         "read": {
             "permissions": [
                 "ssm:GetParameter",
+                "ssm:PutParameter",
                 "eks:DescribeCluster",
-                "ec2:Describe*",
+                "ec2:DescribeSubnets",
+                "ec2:DescribeSecurityGroups",
+                "ec2:DescribeVpcs",
                 "ec2:CreateNetworkInterface",
                 "ec2:DeleteNetworkInterface",
-                "iam:PassRole",
                 "sts:GetCallerIdentity",
-                "lambda:*"
-            ]
-        },
-        "update": {
-            "permissions": [
-                "ssm:GetParameter",
-                "eks:DescribeCluster",
-                "ec2:Describe*",
-                "ec2:CreateNetworkInterface",
-                "ec2:DeleteNetworkInterface",
-                "iam:PassRole",
-                "lambda:*"
+                "s3:GetObject",
+                "lambda:CreateFunction",
+                "lambda:UpdateFunctionConfiguration",
+                "lambda:UpdateFunctionCode",
+                "lambda:InvokeFunction",
+                "iam:PassRole"
             ]
         },
         "delete": {
             "permissions": [
                 "ssm:GetParameter",
+                "ssm:DeleteParameter",
                 "eks:DescribeCluster",
-                "ec2:Describe*",
+                "ec2:DescribeSubnets",
+                "ec2:DescribeSecurityGroups",
+                "ec2:DescribeVpcs",
                 "ec2:CreateNetworkInterface",
                 "ec2:DeleteNetworkInterface",
-                "iam:PassRole",
                 "sts:GetCallerIdentity",
-                "lambda:*"
-            ]
-        },
-        "list": {
-            "permissions": [
-                "ssm:GetParameter",
-                "eks:DescribeCluster",
-                "ec2:Describe*",
-                "ec2:CreateNetworkInterface",
-                "ec2:DeleteNetworkInterface",
-                "iam:PassRole",
-                "sts:GetCallerIdentity",
-                "lambda:*"
+                "s3:GetObject",
+                "lambda:CreateFunction",
+                "lambda:UpdateFunctionConfiguration",
+                "lambda:UpdateFunctionCode",
+                "lambda:InvokeFunction",
+                "iam:PassRole"
             ]
         }
     }

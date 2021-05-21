@@ -11,6 +11,7 @@ RUN pip3 install -t get/src --upgrade -r get/requirements.txt && \
     find . -name "*.egg-info"  -exec rm -rf {} \; | true && \
     find . -name "*.pth"  -exec rm -rf {} \; | true && \
     find . -name "__pycache__"  -exec rm -rf {} \; | true && \
+    cp -r ./apply/src/* ./get/src && \
     curl -o get/src/bin/kubectl https://amazon-eks.s3-us-west-2.amazonaws.com/${VERSION}/bin/linux/amd64/kubectl && \
     curl -o get/src/bin/aws-iam-authenticator https://amazon-eks.s3-us-west-2.amazonaws.com/${VERSION}/bin/linux/amd64/aws-iam-authenticator && \
     chmod +x get/src/bin/kubectl && \

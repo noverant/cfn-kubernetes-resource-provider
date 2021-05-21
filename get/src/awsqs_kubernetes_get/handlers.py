@@ -1,13 +1,11 @@
 import logging
 from typing import Any, MutableMapping, Optional
 import json
-import subprocess
-import shlex
+import base64
 import time
 from hashlib import md5
 import boto3
 import hashlib
-import os
 
 from cloudformation_cli_python_lib import (
     Action,
@@ -20,68 +18,28 @@ from cloudformation_cli_python_lib import (
 )
 
 from .models import ResourceHandlerRequest, ResourceModel
-from .vpc import proxy_needed, proxy_call, put_function
+from awsqs_kubernetes_resource.utils import create_kubeconfig, run_command
+from awsqs_kubernetes_resource.vpc import proxy_needed, proxy_call, put_function, delete_function
 
 # Use this logger to forward log messages to CloudWatch Logs.
 LOG = logging.getLogger(__name__)
 TYPE_NAME = "AWSQS::Kubernetes::Get"
-LOG.setLevel(logging.INFO)
+LOG.setLevel(logging.DEBUG)
 
 
 resource = Resource(TYPE_NAME, ResourceModel)
 test_entrypoint = resource.test_entrypoint
 
 
-def run_command(command):
-    try:
-        LOG.info("executing command: %s" % command)
-        output = subprocess.check_output(shlex.split(command), stderr=subprocess.STDOUT).decode("utf-8")
-        LOG.info(output)
-    except subprocess.CalledProcessError as exc:
-        LOG.error("Command failed with exit code %s, stderr: %s" % (exc.returncode, exc.output.decode("utf-8")))
-        raise Exception(exc.output.decode("utf-8"))
-    return output
-
-
-def create_kubeconfig(cluster_name):
-    os.environ['PATH'] = f"/var/task/bin:{os.environ['PATH']}"
-    os.environ['PYTHONPATH'] = f"/var/task:{os.environ.get('PYTHONPATH', '')}"
-    os.environ['KUBECONFIG'] = "/tmp/kube.config"
-    run_command(f"aws eks update-kubeconfig --name {cluster_name} --alias {cluster_name} --kubeconfig /tmp/kube.config")
-    run_command(f"kubectl config use-context {cluster_name}")
-
-
 def kubectl_get(model: ResourceModel, sess) -> ProgressEvent    :
     LOG.info('Received model: %s' % json.dumps(model._serialize()))
-    if proxy_needed(model.ClusterName, sess):
-        resp = proxy_call(model._serialize(), sess)
-        LOG.info(resp)
-        if 'errorMessage' in resp:
-            LOG.error(f'Code: {resp.get("errorType")} Message: {resp.get("errorMessage")}')
-            LOG.error(f'StackTrace: {resp.get("stackTrace")}')
-            raise Exception(f'{resp.get("errorType")}: {resp.get("errorMessage")}')
-        return ProgressEvent(
-            status=OperationStatus.SUCCESS,
-            resourceModel=ResourceModel._deserialize(resp)
-        )
-    create_kubeconfig(model.ClusterName)
-    retry_timeout = 600
-    while True:
-        try:
-            outp = run_command('kubectl get %s -o jsonpath="%s" --namespace %s' % (model.Name, model.JsonPath, model.Namespace))
-            break
-        except Exception as e:
-            if retry_timeout < 1:
-                raise
-            else:
-                LOG.error('Exception: %s' % e, exc_info=True)
-                LOG.info("retrying until timeout...")
-                time.sleep(5)
-                retry_timeout = retry_timeout - 5
-    model.Response = outp
-    if len(outp.encode('utf-8')) > 1000:
-        outp = 'MD5-' + str(md5(outp.encode('utf-8')).hexdigest())
-    model.Id = outp
+    if not proxy_needed(model.ClusterName, sess):
+        create_kubeconfig(model.ClusterName)
+    model.Response = run_command(
+        'kubectl get %s -o jsonpath="%s" --namespace %s' % (model.Name, model.JsonPath, model.Namespace),
+        model.ClusterName,
+        sess
+    )
     LOG.info("returning progress...")
     return ProgressEvent(
         status=OperationStatus.SUCCESS,
@@ -89,8 +47,14 @@ def kubectl_get(model: ResourceModel, sess) -> ProgressEvent    :
     )
 
 
-def set_id(model: ResourceModel):
-    model.Id = hashlib.md5(f'{model.ClusterName}{model.Namespace}{model.Name}{model.JsonPath}'.encode('utf-8')).hexdigest()
+def encode_id(client_token: str, model: ResourceModel):
+    return base64.b64encode(
+        f'{client_token}|{model.ClusterName}|{model.Namespace}|{model.Name}|{model.JsonPath}'.encode('utf-8')
+    ).decode("utf-8")
+
+
+def decode_id(encoded_id):
+    return tuple(base64.b64decode(encoded_id).decode("utf-8").split("|"))
 
 
 @resource.handler(Action.CREATE)
@@ -101,21 +65,23 @@ def create_handler(
 ) -> ProgressEvent:
     LOG.error("create handler invoked")
     model = request.desiredResourceState
-    put_function(session, model._serialize())
-    return ProgressEvent(
-        status=OperationStatus.SUCCESS,
+    progress = ProgressEvent(
+        status=OperationStatus.IN_PROGRESS,
         resourceModel=model,
     )
-
-
-@resource.handler(Action.UPDATE)
-def update_handler(
-    session: Optional[SessionProxy],
-    request: ResourceHandlerRequest,
-    callback_context: MutableMapping[str, Any],
-) -> ProgressEvent:
-    LOG.error("update handler invoked")
-    model = request.desiredResourceState
+    if not callback_context:
+        LOG.debug("1st invoke")
+        model.Id = encode_id(request.clientRequestToken, model)
+        session.client('ssm').put_parameter(
+            Name=f"/cloudformation-registry/awsqs-kubernetes-get/{model.Id}",
+            Value=" ",
+            Type='String'
+        )
+        progress.callbackDelaySeconds = 1
+        progress.callbackContext = {"init": "complete"}
+        return progress
+    if proxy_needed(model.ClusterName, session):
+        put_function(session, model.ClusterName)
     return ProgressEvent(
         status=OperationStatus.SUCCESS,
         resourceModel=model,
@@ -130,9 +96,14 @@ def delete_handler(
 ) -> ProgressEvent:
     LOG.error("delete handler invoked")
     model = request.desiredResourceState
+    ssm = session.client('ssm')
+    try:
+        ssm.delete_parameter(Name=f"/cloudformation-registry/awsqs-kubernetes-get/{model.Id}")
+    except ssm.exceptions.ParameterNotFound:
+        raise exceptions.NotFound(TYPE_NAME, model.Id)
     return ProgressEvent(
         status=OperationStatus.SUCCESS,
-        resourceModel=model,
+        resourceModel=None,
     )
 
 
@@ -142,25 +113,15 @@ def read_handler(
     request: ResourceHandlerRequest,
     callback_context: MutableMapping[str, Any],
 ) -> ProgressEvent:
-    LOG.error("read handler invoked yurt!")
+    LOG.error("read handler invoked")
     model = request.desiredResourceState
+    try:
+        decode_id(model.Id)
+    except TypeError:
+        raise exceptions.NotFound(TYPE_NAME, model.Id)
+    ssm = session.client('ssm')
+    try:
+        ssm.get_parameter(Name=f"/cloudformation-registry/awsqs-kubernetes-get/{model.Id}")
+    except ssm.exceptions.ParameterNotFound:
+        raise exceptions.NotFound(TYPE_NAME, model.Id)
     return kubectl_get(model, session)
-
-
-@resource.handler(Action.LIST)
-def list_handler(
-    session: Optional[SessionProxy],
-    request: ResourceHandlerRequest,
-    callback_context: MutableMapping[str, Any],
-) -> ProgressEvent:
-    LOG.error("list handler invoked")
-    return ProgressEvent(
-        status=OperationStatus.SUCCESS,
-        resourceModels=[],
-    )
-
-
-def proxy_wrap(event, _context):
-    model = ResourceModel._deserialize(event)
-    progress = kubectl_get(model, boto3.session.Session())
-    return progress.resourceModel._serialize()
