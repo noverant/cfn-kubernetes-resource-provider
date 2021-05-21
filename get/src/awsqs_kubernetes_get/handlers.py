@@ -71,7 +71,7 @@ def create_handler(
     )
     if not callback_context:
         LOG.debug("1st invoke")
-        model.Id = encode_id(request.clientRequestToken, model)
+        model.Id = encode_id(request.clientRequestToken, model).replace('=', '')
         session.client('ssm').put_parameter(
             Name=f"/cloudformation-registry/awsqs-kubernetes-get/{model.Id}",
             Value=" ",
