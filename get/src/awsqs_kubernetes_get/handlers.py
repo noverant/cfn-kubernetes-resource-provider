@@ -53,8 +53,8 @@ def encode_id(client_token: str, model: ResourceModel):
     ).decode("utf-8")
 
 
-def decode_id(encoded_id):
-    return tuple(base64.b64decode(encoded_id).decode("utf-8").split("|"))
+def decode_id(encoded_id, model):
+    _, model.ClusterName, model.Namespace, model.Name, model.JsonPath = tuple(base64.b64decode(encoded_id).decode("utf-8").split("|"))
 
 
 @resource.handler(Action.CREATE)
@@ -116,7 +116,7 @@ def read_handler(
     LOG.error("read handler invoked")
     model = request.desiredResourceState
     try:
-        decode_id(model.Id + '===')
+        decode_id(model.Id + '===', model)
     except TypeError:
         raise exceptions.NotFound(TYPE_NAME, model.Id)
     ssm = session.client('ssm')
