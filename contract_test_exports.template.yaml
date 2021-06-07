@@ -59,6 +59,7 @@ Resources:
                     - "logs:PutLogEvents"
                     - "lambda:*"
                     - "cloudformation:ListExports"
+                    - "ssm:*Parameter"
                 Resource: "*"
   LogDeliveryRole:
     Type: AWS::IAM::Role
