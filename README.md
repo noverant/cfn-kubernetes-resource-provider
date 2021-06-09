@@ -33,7 +33,7 @@ At this time EKS is supported by providing the `ClusterName`, with plans for sup
 ## Prerequisites
 
 ### IAM role
-An IAM role is used by CloudFormation to execute the resource type handler code provided by this project. A CloudFormation template to create the exeecution role is available [here](https://github.com/aws-quickstart/quickstart-kubernetes-resource-provider/blob/main/execution-role.template.yaml) 
+An IAM role is used by CloudFormation to execute the resource type handler code provided by this project. A CloudFormation template to create the execution role is available [here](https://github.com/aws-quickstart/quickstart-kubernetes-resource-provider/blob/main/execution-role.template.yaml) 
 
 ### Create an EKS cluster and provide CloudFormation access to the Kubernetes API
 EKS clusters use IAM to allow access to the kubernetes API, as the CloudFormation resource types in this project interact with the kubernetes API, the IAM execution role must be granted access to the kubernetes API. This can be done in one of two ways: 
