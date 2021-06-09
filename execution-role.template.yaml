@@ -43,6 +43,13 @@ Resources:
                   - "lambda:InvokeFunction"  # required for EKS clusters with Public Endpoint disabled
                   - "lambda:CreateFunction"  # required for EKS clusters with Public Endpoint disabled
                   - "lambda:UpdateFunctionCode"  # required for EKS clusters with Public Endpoint disabled
+                  - "logs:CreateLogGroup"  # required if this role is also used for Resource type logging
+                  - "logs:CreateLogStream"  # required if this role is also used for Resource type logging
+                  - "logs:DescribeLogGroups"  # required if this role is also used for Resource type logging
+                  - "logs:DescribeLogStreams"  # required if this role is also used for Resource type logging
+                  - "logs:PutLogEvents"  # required if this role is also used for Resource type logging
+                  - "cloudwatch:ListMetrics"  # required if this role is also used for Resource type logging
+                  - "cloudwatch:PutMetricData"  # required if this role is also used for Resource type logging
                 Resource: "*"
 Outputs:
   ExecutionRoleArn:
