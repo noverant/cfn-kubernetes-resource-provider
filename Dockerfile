@@ -20,6 +20,7 @@ RUN cd apply/src && \
     find . -exec touch -t 202007010000.00 {} + && \
     zip -r ../vpc.zip ./ && \
     cp ../vpc.zip /build/awsqs_kubernetes_apply_vpc.zip && \
+    cp ../vpc.zip /build/awsqs_kubernetes_get_vpc.zip && \
     mv ../vpc.zip ./awsqs_kubernetes_resource/
 
 RUN cd apply/src && zip -r -q ../ResourceProvider.zip ./ && \
