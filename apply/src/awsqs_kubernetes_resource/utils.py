@@ -194,8 +194,8 @@ def proxy_wrap(event, _context):
     if event.get("manifest"):
         with open("/tmp/manifest.yaml", 'w') as f:
             f.write(event["manifest"])
-    with open("/tmp/manifest.yaml", 'r') as f:
-        LOG.debug(f.read())
+        with open("/tmp/manifest.yaml", 'r') as f:
+            LOG.debug(f.read())
     create_kubeconfig(event["cluster_name"])
     return run_command(event["command"], event["cluster_name"], boto3.session.Session())
 
