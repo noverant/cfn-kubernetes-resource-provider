@@ -61,7 +61,7 @@ def this_invoke_is_inside_vpc(subnet_ids: set, sg_ids: set) -> bool:
 def proxy_call(cluster_name, manifest, command, sess):
     event = {"cluster_name": cluster_name, "manifest": manifest, "command": command}
     resp = invoke_function(
-        f"awsqs-kubernetes-resource-apply-proxy-{cluster_name}", event, sess
+        f"awsqs-kubernetes-resource-proxy-{cluster_name}", event, sess
     )
     if "errorMessage" in resp:
         LOG.error(f'Code: {resp.get("errorType")} Message: {resp.get("errorMessage")}')
@@ -101,10 +101,10 @@ def put_function(sess, cluster_name):
     )
     lmbd = sess.client("lambda")
     function_config = {
-        "FunctionName": f"awsqs-kubernetes-resource-apply-proxy-{cluster_name}",
+        "FunctionName": f"awsqs-kubernetes-resource-proxy-{cluster_name}",
         "Runtime": "python3.7",
         "Role": role_arn,
-        "Handler": "awsqs_kubernetes_resource.handlers.proxy_wrap",
+        "Handler": "awsqs_kubernetes_resource.utils.proxy_wrap",
         "Timeout": 900,
         "MemorySize": 512,
         "VpcConfig": {
@@ -146,7 +146,7 @@ def update_function_config(lmbd, function_config):
 def delete_function(sess, cluster_name):
     lmbd = sess.client("lambda")
     try:
-        lmbd.delete_function(FunctionName=f"awsqs-kubernetes-resource-apply-proxy-{cluster_name}")
+        lmbd.delete_function(FunctionName=f"awsqs-kubernetes-resource-proxy-{cluster_name}")
     except lmbd.exceptions.ResourceNotFoundException:
         LOG.warning("No cleanup performed, VPC lambda function does not exist")
 
