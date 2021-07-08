@@ -9,6 +9,7 @@ import re
 import shlex
 import subprocess
 import os
+from pathlib import Path
 from time import sleep
 
 from .vpc import proxy_needed, put_function, proxy_call
@@ -50,8 +51,11 @@ def run_command(command, cluster_name, session):
     if cluster_name and session:
         if proxy_needed(cluster_name, session):
             put_function(session, cluster_name)
-            with open("/tmp/manifest.yaml", "r") as fh:
-                resp = proxy_call(cluster_name, fh.read(), command, session)
+            manifest = None
+            if Path("/tmp/manifest.yaml").is_file():
+                with open("/tmp/manifest.yaml", "r") as fh:
+                    manifest = fh.read()
+            resp = proxy_call(cluster_name, manifest, command, session)
             log_output(resp)
             return resp
     retries = 0
