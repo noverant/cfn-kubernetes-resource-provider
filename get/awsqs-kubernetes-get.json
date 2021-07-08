@@ -53,6 +53,7 @@
         "create": {
             "permissions": [
                 "ssm:GetParameter",
+                "ssm:PutParameter",
                 "eks:DescribeCluster",
                 "ec2:DescribeSubnets",
                 "ec2:DescribeSecurityGroups",
