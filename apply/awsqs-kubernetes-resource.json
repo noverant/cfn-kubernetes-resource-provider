@@ -30,7 +30,7 @@
         },
         "SelfLink": {
             "type":"string",
-            "description": "Link returned by the kubernetes api."
+            "description": "Link returned by the kubernetes api. Deprecated and removed in kubernetes 1.20+"
         },
         "Uid": {
             "type":"string",

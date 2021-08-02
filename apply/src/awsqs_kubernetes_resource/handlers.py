@@ -55,10 +55,7 @@ def create_handler(
         progress.callbackContext = {"init": "complete"}
         return progress
     if "stabilizing" in callback_context:
-        if (
-            callback_context["stabilizing"].startswith("/apis/batch")
-            and "cronjobs" not in callback_context["stabilizing"]
-        ):
+        if manifest_list[0]["apiVersion"].startswith("batch/") and manifest_list[0]["kind"] == 'Job':
             if stabilize_job(
                 model.Namespace, callback_context["name"], model.ClusterName, session
             ):
@@ -86,7 +83,7 @@ def create_handler(
     if not model.SelfLink:
         # this is a multi-part resource, still need to work out stabilization for this
         pass
-    elif model.SelfLink.startswith("/apis/batch") and "cronjobs" not in model.SelfLink:
+    elif manifest_list[0]["apiVersion"].startswith("batch/") and manifest_list[0]["kind"] == 'Job':
         callback_context["stabilizing"] = model.SelfLink
         callback_context["name"] = model.Name
         progress.callbackContext = callback_context
