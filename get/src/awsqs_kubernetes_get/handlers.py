@@ -80,8 +80,23 @@ def create_handler(
         progress.callbackDelaySeconds = 1
         progress.callbackContext = {"init": "complete"}
         return progress
-    if proxy_needed(model.ClusterName, session):
-        put_function(session, model.ClusterName)
+    elif callback_context.get("init"):
+        if proxy_needed(model.ClusterName, session):
+            put_function(session, model.ClusterName)
+        progress.callbackDelaySeconds = 1
+        progress.callbackContext = {"retries": "0"}
+        return progress
+    elif callback_context.get("retries"):
+        retries_done = int(callback_context.get("retries", "0"))
+        retries_allowed = int(model.Retries) if model.Retries else 0
+        try:
+            read_handler(session, request, callback_context)
+        except Exception as e:
+            if retries_done >= retries_allowed:
+                raise e
+            progress.callbackDelaySeconds = 60
+            progress.callbackContext = {"retries": str(retries_done + 1)}
+            return progress
     return ProgressEvent(
         status=OperationStatus.SUCCESS,
         resourceModel=model,

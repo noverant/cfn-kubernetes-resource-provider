@@ -16,6 +16,7 @@ To declare this entity in your AWS CloudFormation template, use the following sy
         "<a href="#name" title="Name">Name</a>" : <i>String</i>,
         "<a href="#namespace" title="Namespace">Namespace</a>" : <i>String</i>,
         "<a href="#jsonpath" title="JsonPath">JsonPath</a>" : <i>String</i>,
+        "<a href="#retries" title="Retries">Retries</a>" : <i>Integer</i>
     }
 }
 </pre>
@@ -29,6 +30,7 @@ Properties:
     <a href="#name" title="Name">Name</a>: <i>String</i>
     <a href="#namespace" title="Namespace">Namespace</a>: <i>String</i>
     <a href="#jsonpath" title="JsonPath">JsonPath</a>: <i>String</i>
+    <a href="#retries" title="Retries">Retries</a>: <i>Integer</i>
 </pre>
 
 ## Properties
@@ -72,6 +74,16 @@ _Required_: Yes
 _Type_: String
 
 _Update requires_: [Replacement](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-replacement)
+
+#### Retries
+
+How many times to retry a request. This provides a mechanism to wait for resources to be created before proceeding. Interval between retries is 60 seconds.
+
+_Required_: No
+
+_Type_: Integer
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 
 ## Return Values
 

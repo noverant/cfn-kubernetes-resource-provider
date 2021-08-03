@@ -27,6 +27,10 @@
         "Id": {
             "description": "Response from the kubernetes api represented as a string, will be a hash representation if the response is > 1000 characters.",
             "type": "string"
+        },
+        "Retries": {
+            "description": "How many times to retry a request. This provides a mechanism to wait for resources to be created before proceeding. Interval between retries is 60 seconds.",
+            "type": "integer"
         }
     },
     "additionalProperties": false,

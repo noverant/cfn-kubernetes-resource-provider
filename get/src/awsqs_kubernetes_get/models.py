@@ -46,6 +46,7 @@ class ResourceModel(BaseModel):
     JsonPath: Optional[str]
     Response: Optional[str]
     Id: Optional[str]
+    Retries: Optional[int]
 
     @classmethod
     def _deserialize(
@@ -63,6 +64,7 @@ class ResourceModel(BaseModel):
             JsonPath=json_data.get("JsonPath"),
             Response=json_data.get("Response"),
             Id=json_data.get("Id"),
+            Retries=json_data.get("Retries"),
         )
 
 
