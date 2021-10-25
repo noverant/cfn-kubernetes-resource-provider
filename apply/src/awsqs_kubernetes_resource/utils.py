@@ -182,6 +182,7 @@ def stabilize_job(namespace, name, cluster_name, session):
         )
     )
     for resource in response:
+        # check for failures
         for condition in resource.get("status", {}).get("conditions", []):
             if condition.get("status") == "True":
                 if condition.get("type") == "Failed":
@@ -190,7 +191,11 @@ def stabilize_job(namespace, name, cluster_name, session):
                     )
                 if condition.get("type") != "Complete":
                     return False
-    return True
+        # check for success
+        if resource.get("status", {}).get("succeeded"):
+            return True
+    # if it has not failed/succeeded, it is still in progress
+    return False
 
 
 def proxy_wrap(event, _context):
