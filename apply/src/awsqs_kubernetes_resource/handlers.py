@@ -80,11 +80,11 @@ def create_handler(
         LOG.debug("checking whether this is a duplicate request....")
         if not get_model(model, session):
             raise exceptions.AlreadyExists(TYPE_NAME, model.CfnId)
-    if not model.SelfLink:
+    if not model.Uid:
         # this is a multi-part resource, still need to work out stabilization for this
         pass
     elif manifest_list[0]["apiVersion"].startswith("batch/") and manifest_list[0]["kind"] == 'Job':
-        callback_context["stabilizing"] = model.SelfLink
+        callback_context["stabilizing"] = model.Uid
         callback_context["name"] = model.Name
         progress.callbackContext = callback_context
         progress.callbackDelaySeconds = 30
