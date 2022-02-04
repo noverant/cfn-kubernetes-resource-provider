@@ -11,7 +11,7 @@ import subprocess
 import os
 from pathlib import Path
 from time import sleep
-
+from cloudformation_cli_python_lib import exceptions
 from .vpc import proxy_needed, put_function, proxy_call
 
 LOG = logging.getLogger(__name__)
@@ -186,9 +186,7 @@ def stabilize_job(namespace, name, cluster_name, session):
         for condition in resource.get("status", {}).get("conditions", []):
             if condition.get("status") == "True":
                 if condition.get("type") == "Failed":
-                    raise Exception(
-                        f"Job failed {condition.get('reason')} {condition.get('message')}"
-                    )
+                    raise exceptions.NotStabilized(f"Job failed {condition.get('reason')} {condition.get('message')}")
                 if condition.get("type") != "Complete":
                     return False
         # check for success
