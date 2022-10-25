@@ -71,7 +71,7 @@ def proxy_call(cluster_name, manifest, command, sess):
 
 
 def random_string(length=8):
-    return "".join(choice(ascii_lowercase) for _ in range(length))
+    return "".join(choice(ascii_lowercase) for _ in range(length))  # nosec B311
 
 
 def put_function(sess, cluster_name):
@@ -102,7 +102,7 @@ def put_function(sess, cluster_name):
     lmbd = sess.client("lambda")
     function_config = {
         "FunctionName": f"awsqs-kubernetes-resource-proxy-{cluster_name}",
-        "Runtime": "python3.7",
+        "Runtime": "python3.8",
         "Role": role_arn,
         "Handler": "awsqs_kubernetes_resource.utils.proxy_wrap",
         "Timeout": 900,

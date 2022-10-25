@@ -1,4 +1,4 @@
-FROM lambci/lambda:build-python3.7
+FROM lambci/lambda:build-python3.8
 
 ENV VERSION="1.16.8/2020-04-16"
 
@@ -18,7 +18,7 @@ RUN pip3 install -t apply/src --upgrade -r apply/requirements.txt && \
 
 RUN cd apply/src && \
     find . -exec touch -t 202007010000.00 {} + && \
-    zip -r ../vpc.zip ./ && \
+    zip -Z bzip2 -r ../vpc.zip ./ && \
     cp ../vpc.zip /build/awsqs_kubernetes_apply_vpc.zip && \
     cp ../vpc.zip /build/awsqs_kubernetes_get_vpc.zip && \
     mv ../vpc.zip ./awsqs_kubernetes_resource/

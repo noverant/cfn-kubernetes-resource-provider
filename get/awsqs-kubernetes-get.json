@@ -1,6 +1,6 @@
 {
     "typeName": "AWSQS::Kubernetes::Get",
-    "description": "Fetches data from a kubernetes cluster using jsonpath expressions.",
+    "description": "Fetches data from a kubernetes cluster using jsonpath expressions. Version: 0.1",
     "sourceUrl": "https://github.com/aws-quickstart/quickstart-amazon-eks.git",
     "documentationUrl": "https://github.com/aws-quickstart/quickstart-kubernetes-resource-provider/blob/main/README.md",
     "properties": {

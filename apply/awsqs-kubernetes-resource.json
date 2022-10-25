@@ -1,6 +1,6 @@
 {
     "typeName": "AWSQS::Kubernetes::Resource",
-    "description": "Applys a YAML manifest to the specified Kubernetes cluster",
+    "description": "Applys a YAML manifest to the specified Kubernetes cluster. Version: 0.1",
     "sourceUrl": "https://github.com/aws-quickstart/quickstart-amazon-eks.git",
     "documentationUrl": "https://github.com/aws-quickstart/quickstart-kubernetes-resource-provider/blob/main/README.md",
     "properties": {
