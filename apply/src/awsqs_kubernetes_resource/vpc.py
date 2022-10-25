@@ -71,7 +71,7 @@ def proxy_call(cluster_name, manifest, command, sess):
 
 
 def random_string(length=8):
-    return "".join(choice(ascii_lowercase) for _ in range(length))
+    return "".join(choice(ascii_lowercase) for _ in range(length))  # nosec B311
 
 
 def put_function(sess, cluster_name):
