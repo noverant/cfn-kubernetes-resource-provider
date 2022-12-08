@@ -99,7 +99,7 @@ def create_handler(
 def update_handler(
     session: Optional[SessionProxy],
     request: ResourceHandlerRequest,
-    _c: MutableMapping[str, Any],
+    callback_context: MutableMapping[str, Any],
 ) -> ProgressEvent:
     model = request.desiredResourceState
     progress: ProgressEvent = ProgressEvent(
@@ -113,26 +113,40 @@ def update_handler(
     _p, manifest_file, _d = handler_init(
         model, session, request.logicalResourceIdentifier, token
     )        
-    if not get_model(model, session):
-        raise exceptions.NotFound(TYPE_NAME, model.Uid)
-    cmd = f"kubectl apply -o yaml -f {manifest_file}"
-    if model.Namespace:
-        cmd = f"{cmd} -n {model.Namespace}"
-    outp = run_command(
-        cmd,
-        model.ClusterName,
-        session,
-    )
-    build_model(list(yaml.safe_load_all(outp)), model)
-    progress.status = OperationStatus.SUCCESS
-    return progress
+    # validate if the resource is owned by this cloud formation resource
+    if not callback_context:
+        LOG.debug("update_handler validate the resource")
+        if not get_model(model, session):
+            raise exceptions.NotFound(TYPE_NAME, model.Uid)
+        progress.callbackDelaySeconds = 5
+        progress.callbackContext = {"validation": "complete"}
+        return progress
+
+    # resource ownership is already validated, update the resource
+    if "validation" in callback_context:
+        LOG.debug("update_handler update the resource")
+        cmd = f"kubectl apply -o yaml -f {manifest_file}"
+        if model.Namespace:
+            cmd = f"{cmd} -n {model.Namespace}"
+        outp = run_command(
+            cmd,
+            model.ClusterName,
+            session,
+        )
+        build_model(list(yaml.safe_load_all(outp)), model)
+        progress.status = OperationStatus.SUCCESS
+        return progress
+    else:
+        LOG.debug("update_handler validation not present in the callback_context")
+        progress.status = OperationStatus.FAILED
+        return progress
 
 
 @resource.handler(Action.DELETE)
 def delete_handler(
     session: Optional[SessionProxy],
     request: ResourceHandlerRequest,
-    _c: MutableMapping[str, Any],
+    callback_context: MutableMapping[str, Any],
 ) -> ProgressEvent:
     model = request.desiredResourceState
     progress: ProgressEvent = ProgressEvent(
@@ -145,21 +159,30 @@ def delete_handler(
     _p, manifest_file, _d = handler_init(
         model, session, request.logicalResourceIdentifier, request.clientRequestToken
     )
-    if not get_model(model, session):
-        raise exceptions.NotFound(TYPE_NAME, model.Uid)
-    try:
-        cmd = f"kubectl delete -f {manifest_file}"
-        if model.Namespace:
-            cmd = f"{cmd} -n {model.Namespace}"
-        run_command(
-            cmd,
-            model.ClusterName,
-            session,
-        )
-    except Exception as e:
-        if "Error from server (NotFound)" not in str(e):
-            raise
-    delete_function(session, model.ClusterName)
+    # validate if the resource is owned by this cloud formation resource
+    if not callback_context:
+        LOG.debug("delete_handler validate the resource")
+        if not get_model(model, session):
+            raise exceptions.NotFound(TYPE_NAME, model.Uid)
+        progress.callbackDelaySeconds = 5
+        progress.callbackContext = {"validation": "complete"}
+        return progress
+    # resource ownership is already validated, update the resource
+    if "validation" in callback_context:
+        LOG.debug("delete_handler delete the resource")
+        try:
+            cmd = f"kubectl delete -f {manifest_file}"
+            if model.Namespace:
+                cmd = f"{cmd} -n {model.Namespace}"
+            run_command(
+                cmd,
+                model.ClusterName,
+                session,
+            )
+        except Exception as e:
+            if "Error from server (NotFound)" not in str(e):
+                raise
+        delete_function(session, model.ClusterName)
     return progress
 
 
