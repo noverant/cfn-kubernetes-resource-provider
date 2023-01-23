@@ -85,3 +85,4 @@ Outputs:
   KubeDnsClusterIp:
     Value: !GetAtt GetKubeDnsClusterIp.Response
 ```
+
