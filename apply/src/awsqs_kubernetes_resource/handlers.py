@@ -65,6 +65,10 @@ def create_handler(
             LOG.debug(f"stabilizing: {progress.__dict__}")
             return progress
     try:
+        # kubectl apply will update existing resources which breaks the
+        # cfn registry contract. kubectl create fails when the resources in
+        # your manifest already exist, which is what cfn expects.
+        # https://docs.aws.amazon.com/cloudformation-cli/latest/userguide/resource-type-test-contract.html#resource-type-test-contract-additional-leaking
         cmd = f"kubectl create --save-config -o yaml -f {manifest_file}"
         if model.Namespace:
             cmd = f"{cmd} -n {model.Namespace}"
