@@ -38,7 +38,8 @@ Resources:
                   - "logs:CreateLogGroup"  # required for EKS clusters with Public Endpoint disabled
                   - "logs:CreateLogStream"  # required for EKS clusters with Public Endpoint disabled
                   - "logs:PutLogEvents"  # required for EKS clusters with Public Endpoint disabled
-                  - "lambda:UpdateFunctionConfiguration"  # required for EKS clusters with Public Endpoint disabled
+                  - "lambda:UpdateFunctionConfiguration" # required for EKS clusters with Public Endpoint disabled
+                  - "lambda:GetFunctionConfiguration" # required for EKS clusters with Public Endpoint disabled
                   - "lambda:DeleteFunction"  # required for EKS clusters with Public Endpoint disabled
                   - "lambda:GetFunction"  # required for EKS clusters with Public Endpoint disabled
                   - "lambda:InvokeFunction"  # required for EKS clusters with Public Endpoint disabled
