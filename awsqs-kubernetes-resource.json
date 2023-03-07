@@ -1,0 +1,16 @@
+{
+  "typeName": "AWSQS::Kubernetes::Resource",
+  "description": "Kubernetes Resource Types for AWS CloudFormation\n\nThis project has been deprecated, and is no longer supported. You are free to fork the code in the main branch and use it as a private resource type, but no support will be given by the AWS I&A or Cloudformation Teams.\n\n**USE AT YOUR OWN RISK**",
+  "sourceUrl": "https://github.com/aws-quickstart/quickstart-helm-resource-provider.git",
+  "documentationUrl": "https://github.com/aws-quickstart/quickstart-kubernetes-resource-provider/blob/deprecation/README.md",
+  "properties": {
+        "ID": {
+            "description": "Primary identifier for Cloudformation",
+            "type": "string"
+        }
+  },
+  "additionalProperties": false,
+  "primaryIdentifier": [
+    "/properties/ID"
+    ]
+}
