@@ -1,0 +1,22 @@
+{
+    "artifact_type": "RESOURCE",
+    "typeName": "AWSQS::Kubernetes::Resource",
+    "language": "python39",
+    "runtime": "python3.9",
+    "entrypoint": "awsqs_kubernetes_resource.handlers.resource",
+    "testEntrypoint": "awsqs_kubernetes_resource.handlers.test_entrypoint",
+    "settings": {
+        "version": false,
+        "subparser_name": null,
+        "verbose": 0,
+        "force": false,
+        "type_name": null,
+        "artifact_type": null,
+        "endpoint_url": null,
+        "region": null,
+        "target_schemas": [],
+        "use_docker": true,
+        "no_docker": false,
+        "protocolVersion": "2.0.0"
+    }
+}
