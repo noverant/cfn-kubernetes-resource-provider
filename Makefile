@@ -15,6 +15,7 @@ publish:
 	set -ex ; \
     aws s3 cp ./build/awsqs_kubernetes_resource.zip s3://$(BUCKET)/ ;\
     TYPE_NAME=Resource ;\
+    n=resource ;\
     TOKEN=`aws cloudformation register-type \
         --type "RESOURCE" \
         --type-name  "AWSQS::Kubernetes::$${TYPE_NAME}" \
