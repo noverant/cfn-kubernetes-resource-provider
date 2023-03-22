@@ -10,6 +10,9 @@
         }
   },
   "additionalProperties": false,
+  "readOnlyProperties": [
+        "/properties/ID"
+    ],
   "primaryIdentifier": [
     "/properties/ID"
     ]

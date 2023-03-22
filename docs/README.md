@@ -16,7 +16,6 @@ To declare this entity in your AWS CloudFormation template, use the following sy
 {
     "Type" : "AWSQS::Kubernetes::Resource",
     "Properties" : {
-        "<a href="#id" title="ID">ID</a>" : <i>String</i>
     }
 }
 </pre>
@@ -26,23 +25,23 @@ To declare this entity in your AWS CloudFormation template, use the following sy
 <pre>
 Type: AWSQS::Kubernetes::Resource
 Properties:
-    <a href="#id" title="ID">ID</a>: <i>String</i>
 </pre>
 
 ## Properties
-
-#### ID
-
-Primary identifier for Cloudformation
-
-_Required_: No
-
-_Type_: String
-
-_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 
 ## Return Values
 
 ### Ref
 
 When you pass the logical ID of this resource to the intrinsic `Ref` function, Ref returns the ID.
+
+### Fn::GetAtt
+
+The `Fn::GetAtt` intrinsic function returns a value for a specified attribute of this type. The following are the available attributes and sample return values.
+
+For more information about using the `Fn::GetAtt` intrinsic function, see [Fn::GetAtt](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference-getatt.html).
+
+#### ID
+
+Primary identifier for Cloudformation
+
