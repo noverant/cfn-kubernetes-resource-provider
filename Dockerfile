@@ -8,9 +8,9 @@ COPY . /build
 
 WORKDIR /build
 
-RUN cd src && zip -r -q ../ResourceProvider.zip ./ && \
+RUN cd src && zip -r -q ../awsqs_kubernetes_resource.zip ./ && \
     cd ../ && \
     find . -exec touch -t 202007010000.00 {} + && \
-    zip -X -r -q ./ResourceProvider.zip awsqs-kubernetes-resource.json
+    zip -X -r -q ./awsqs_kubernetes_resource.zip awsqs-kubernetes-resource.json
 
 CMD mkdir -p /output/ && mv /build/*.zip /output/
