@@ -1,0 +1,11 @@
+{
+    "typeName": "AWSQS::Kubernetes::Get",
+    "language": "python39",
+    "runtime": "python3.9",
+    "entrypoint": "awsqs_kubernetes_get.handlers.resource",
+    "testEntrypoint": "awsqs_kubernetes_get.handlers.resource",
+    "settings": {
+        "use_docker": false,
+        "protocolVersion": "2.0.0"
+    }
+}

@@ -1,0 +1,19 @@
+{
+    "typeName": "AWSQS::Kubernetes::Resource",
+    "description": "Kubernetes Resource Types for AWS CloudFormation\n\nThis project has been retired, and will no longer be supported or maintained after March 31, 2023. You are free to fork the code in the main branch and use it as a private resource type.\n\n**USE AT YOUR OWN RISK**",
+    "sourceUrl": "https://github.com/aws-quickstart/quickstart-kubernetes-resource-provider.git",
+    "documentationUrl": "https://github.com/aws-quickstart/quickstart-kubernetes-resource-provider/blob/main/README.md",
+    "properties": {
+            "ID": {
+                "description": "Primary identifier for Cloudformation",
+                "type": "string"
+            }
+      },
+      "additionalProperties": false,
+      "readOnlyProperties": [
+            "/properties/ID"
+        ],
+      "primaryIdentifier": [
+        "/properties/ID"
+        ]
+    }
