@@ -1,9 +1,9 @@
 {
-    "typeName": "AWSQS::Kubernetes::Get",
+    "typeName": "Noverant::Kubernetes::Get",
     "language": "python39",
     "runtime": "python3.9",
-    "entrypoint": "awsqs_kubernetes_get.handlers.resource",
-    "testEntrypoint": "awsqs_kubernetes_get.handlers.test_entrypoint",
+    "entrypoint": "noverant_kubernetes_get.handlers.resource",
+    "testEntrypoint": "noverant_kubernetes_get.handlers.test_entrypoint",
     "settings": {
         "use_docker": false,
         "protocolVersion": "2.0.0"

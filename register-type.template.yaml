@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: "registers the AWSQS::Kubernetes::Resource and AWSQS::Kubernetes::Apply resource types"
+Description: "registers the Noverant::Kubernetes::Resource and Noverant::Kubernetes::Apply resource types"
 Parameters:
   ExecutionRoleArn:
     Type: String
@@ -8,20 +8,20 @@ Resources:
   ApplyResourceVersion:
     Type: AWS::CloudFormation::ResourceVersion
     Properties:
-      TypeName: AWSQS::Kubernetes::Resource
+      TypeName: Noverant::Kubernetes::Resource
       LoggingConfig:
-        LogGroupName: cloudformation/registry/awsqs-kubernetes-resource
+        LogGroupName: cloudformation/registry/noverant-kubernetes-resource
         LogRoleArn: !Ref ExecutionRoleArn
-      SchemaHandlerPackage: s3://aws-quickstart/quickstart-kubernetes-resource-provider/awsqs_kubernetes_apply.zip
+      SchemaHandlerPackage: s3://nvt-cfn-extensions/cfn-kubernetes-resource-provider/noverant_kubernetes_apply.zip
       ExecutionRoleArn: !Ref ExecutionRoleArn
   GetResourceVersion:
     Type: AWS::CloudFormation::ResourceVersion
     Properties:
-      TypeName: AWSQS::Kubernetes::Get
+      TypeName: Noverant::Kubernetes::Get
       LoggingConfig:
-        LogGroupName: cloudformation/registry/awsqs-kubernetes-resource
+        LogGroupName: cloudformation/registry/noverant-kubernetes-resource
         LogRoleArn: !Ref ExecutionRoleArn
-      SchemaHandlerPackage: s3://aws-quickstart/quickstart-kubernetes-resource-provider/awsqs_kubernetes_get.zip
+      SchemaHandlerPackage: s3://nvt-cfn-extensions/cfn-kubernetes-resource-provider/noverant_kubernetes_get.zip
       ExecutionRoleArn: !Ref ExecutionRoleArn
   ApplyResourceDefaultVersion:
     Type: AWS::CloudFormation::ResourceDefaultVersion

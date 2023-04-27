@@ -14,14 +14,14 @@ build:
 publish:
 	set -ex ; \
     for n in apply get ; do \
-        aws s3 cp ./build/awsqs_kubernetes_$${n}.zip s3://$(BUCKET)/ ;\
+        aws s3 cp ./build/noverant_kubernetes_$${n}.zip s3://$(BUCKET)/ ;\
 		TYPE_NAME=Resource ;\
         if [ "$${n}" == "get" ] ; then TYPE_NAME=Get ; fi ;\
 		TOKEN=`aws cloudformation register-type \
 			--type "RESOURCE" \
-			--type-name  "AWSQS::Kubernetes::$${TYPE_NAME}" \
-			--schema-handler-package s3://$(BUCKET)/awsqs_kubernetes_$${n}.zip \
-			--logging-config LogRoleArn=$(LOG_ROLE),LogGroupName=/cloudformation/registry/awsqs-kubernetes-$${n} \
+			--type-name  "Noverant::Kubernetes::$${TYPE_NAME}" \
+			--schema-handler-package s3://$(BUCKET)/noverant_kubernetes_$${n}.zip \
+			--logging-config LogRoleArn=$(LOG_ROLE),LogGroupName=/cloudformation/registry/noverant-kubernetes-$${n} \
 			--execution-role-arn $(EX_ROLE) \
 			--region $(REGION) \
 			--query RegistrationToken \

@@ -1,0 +1,19 @@
+{
+    "typeName": "Noverant::Kubernetes::Get",
+    "description": "Kubernetes Resource Types for AWS CloudFormation",
+    "sourceUrl": "https://github.com/noverant/cfn-kubernetes-resource-provider.git",
+    "documentationUrl": "https://github.com/noverant/cfn-kubernetes-resource-provider/blob/main/README.md",
+    "properties": {
+            "ID": {
+                "description": "Primary identifier for Cloudformation",
+                "type": "string"
+            }
+      },
+      "additionalProperties": false,
+      "readOnlyProperties": [
+            "/properties/ID"
+        ],
+      "primaryIdentifier": [
+        "/properties/ID"
+        ]
+    }

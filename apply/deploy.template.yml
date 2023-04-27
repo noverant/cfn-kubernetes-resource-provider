@@ -1,10 +1,10 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: "Deploy the AWSQS::Kubernetes::Resource resource into CloudFormation registry - Which is Deprecated."
+Description: "Deploy the Noverant::Kubernetes::Resource resource into CloudFormation registry"
 Parameters:
   HandlerPackage:
     Type: String
     Description: S3 path for handler package
-    Default: s3://aws-quickstart/quickstart-kubernetes-resource-provider/awsqs-kubernetes-resource.zip
+    Default: s3://nvt-cfn-extensions/cfn-kubernetes-resource-provider/noverant-kubernetes-resource.zip
 Resources:
   ExecutionRole:
     Type: AWS::IAM::Role
@@ -78,9 +78,9 @@ Resources:
   ResourceVersion:
     Type: AWS::CloudFormation::ResourceVersion
     Properties:
-      TypeName: AWSQS::Kubernetes::Resource
+      TypeName: Noverant::Kubernetes::Resource
       LoggingConfig:
-        LogGroupName: awsqs-kubernetes-resource-logs
+        LogGroupName: noverant-kubernetes-resource-logs
         LogRoleArn: !GetAtt LogDeliveryRole.Arn
       SchemaHandlerPackage: !Ref HandlerPackage
       ExecutionRoleArn: !GetAtt ExecutionRole.Arn
